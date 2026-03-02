@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI简报 - 洞察人工智能前沿动态</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #06080c;
+            --bg-secondary: #0d1117;
+            --bg-card: #131820;
+            --text-primary: #e6edf3;
+            --text-secondary: #8b949e;
+            --accent: #00d4aa;
+            --accent-glow: rgba(0, 212, 170, 0.3);
+            --border: #21262d;
+            --gradient-start: #00d4aa;
+            --gradient-end: #00a8cc;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Canvas背景 */
+        #bg-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* 鼠标光晕 */
+        .cursor-glow {
+            position: fixed;
+            width: 400px;
+            height: 400px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
+            transform: translate(-50%, -50%);
+            opacity: 0.6;
+            transition: opacity 0.3s;
+        }
+
+        /* 导航栏 */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            padding: 1rem 2rem;
+            background: rgba(6, 8, 12, 0.8);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+
+        nav.scrolled {
+            padding: 0.75rem 2rem;
+            background: rgba(6, 8, 12, 0.95);
+        }
+
+        .nav-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2.5rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.95rem;
+            font-weight: 500;
+            transition: color 0.3s;
+            position: relative;
+        }
+
+        .nav-links a::after {
+            content: '';
+            position: absolute;
+            bottom: -4px;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: var(--accent);
+            transition: width 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--text-primary);
+        }
+
+        .nav-links a:hover::after {
+            width: 100%;
+        }
+
+        .nav-subscribe {
+            padding: 0.6rem 1.5rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border: none;
+            border-radius: 8px;
+            color: var(--bg-primary);
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .nav-subscribe:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px var(--accent-glow);
+        }
+
+        /* Hero区域 */
+        .hero {
+            position: relative;
+            z-index: 2;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 8rem 2rem 4rem;
+            text-align: center;
+        }
+
+        .hero-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: rgba(0, 212, 170, 0.1);
+            border: 1px solid rgba(0, 212, 170, 0.3);
+            border-radius: 50px;
+            font-size: 0.85rem;
+            color: var(--accent);
+            margin-bottom: 2rem;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.5; transform: scale(1.2); }
+        }
+
+        .hero h1 {
+            font-size: clamp(2.5rem, 6vw, 4.5rem);
+            font-weight: 800;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            letter-spacing: -2px;
+        }
+
+        .hero h1 .highlight {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .typing-cursor {
+            display: inline-block;
+            width: 3px;
+            height: 1em;
+            background: var(--accent);
+            margin-left: 4px;
+            animation: blink 1s infinite;
+            vertical-align: text-bottom;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .hero-desc {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 600px;
+            margin-bottom: 3rem;
+            animation: fadeInUp 0.8s ease 0.3s both;
+        }
+
+        .hero-actions {
+            display: flex;
+            gap: 1rem;
+            animation: fadeInUp 0.8s ease 0.5s both;
+        }
+
+        .btn-primary {
+            padding: 1rem 2.5rem;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            border: none;
+            border-radius: 12px;
+            color: var(--bg-primary);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-primary:hover::before {
+            left: 100%;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 40px var(--accent-glow);
+        }
+
+        .btn-secondary {
+            padding: 1rem 2.5rem;
+            background: transparent;
+            border: 2px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            transform: translateY(-3px);
+        }
+
+        /* 统计数字 */
+        .stats {
+            display: flex;
+            gap: 4rem;
+            margin-top: 5rem;
+            animation: fadeInUp 0.8s ease 0.7s both;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        /* 通用section样式 */
+        section {
+            position: relative;
+            z-index: 2;
+            padding: 6rem 2rem;
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 4rem;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            letter-spacing: -1px;
+        }
+
+        .section-header p {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* 简报卡片 */
+        .brief-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .brief-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.75rem;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .brief-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--gradient-start), var(--gradient-end));
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s;
+        }
+
+        .brief-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .brief-card:hover {
+            transform: translateY(-8px);
+            border-color: rgba(0, 212, 170, 0.3);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        .card-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .card-tag {
+            padding: 0.3rem 0.75rem;
+            background: rgba(0, 212, 170, 0.15);
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .card-tag.hot {
+            background: rgba(255, 107, 107, 0.15);
+            color: #ff6b6b;
+        }
+
+        .card-tag.new {
+            background: rgba(78, 205, 196, 0.15);
+            color: #4ecdc4;
+        }
+
+        .card-date {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .brief-card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            line-height: 1.4;
+            transition: color 0.3s;
+        }
+
+        .brief-card:hover h3 {
+            color: var(--accent);
+        }
+
+        .brief-card p {
+            color: var(--text-secondary);
+            font-size: 0.95rem;
+            line-height: 1.7;
+            margin-bottom: 1.25rem;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+
+        .read-time {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .read-more {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: var(--accent);
+            transition: gap 0.3s;
+        }
+
+        .brief-card:hover .read-more {
+            gap: 0.75rem;
+        }
+
+        /* 话题标签区 */
+        .topics-section {
+            background: var(--bg-secondary);
+            border-radius: 24px;
+            padding: 4rem;
+            margin: 2rem 0;
+        }
+
+        .topics-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .topic-tag {
+            padding: 0.75rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 50px;
+            font-size: 0.95rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .topic-tag:hover {
+            border-color: var(--accent);
+            background: rgba(0, 212, 170, 0.1);
+            color: var(--accent);
+            transform: scale(1.05);
+        }
+
+        .topic-tag.active {
+            background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+            color: var(--bg-primary);
+            border-color: transparent;
+        }
+
+        /* 订阅区域 */
+        .subscribe-section {
+            text-align: center;
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, transparent, rgba(0, 212, 170, 0.03));
+            border-radius: 24px;
+            margin-top: 4rem;
+        }
+
+        .subscribe-form {
+            display: flex;
+            gap: 1rem;
+            max-width: 500px;
+            margin: 2rem auto 0;
+        }
+
+        .subscribe-input {
+            flex: 1;
+            padding: 1rem 1.5rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+
+        .subscribe-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .subscribe-input::placeholder {
+            color: var(--text-secondary);
+        }
+
+        /* Footer */
+        footer {
+            position: relative;
+            z-index: 2;
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            color: var(--text-secondary);
+        }
+
+        .footer-links {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .footer-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+
+        .footer-links a:hover {
+            color: var(--accent);
+        }
+
+        /* 动画 */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .fade-in {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: all 0.6s ease;
+        }
+
+        .fade-in.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* 响应式 */
+        @media (max-width: 768px) {
+            .nav-links {
+                display: none;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .brief-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .subscribe-form {
+                flex-direction: column;
+            }
+
+            .topics-section {
+                padding: 2rem;
+            }
+
+            .hero-actions {
+                flex-direction: column;
+            }
+        }
+
+        /* 滚动条样式 */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+    </style>
+</head>
+<body>
+    <canvas id="bg-canvas"></canvas>
+    <div class="cursor-glow" id="cursor-glow"></div>
+
+    <nav id="navbar">
+        <div class="nav-content">
+            <div class="logo">AI简报</div>
+            <ul class="nav-links">
+                <li><a href="#latest">最新简报</a></li>
+                <li><a href="#topics">热门话题</a></li>
+                <li><a href="#subscribe">订阅</a></li>
+                <li><a href="#about">关于</a></li>
+            </ul>
+            <button class="nav-subscribe">立即订阅</button>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <div class="hero-badge">
+            <span class="badge-dot"></span>
+            <span>每日更新 AI 前沿动态</span>
+        </div>
+        <h1>
+            <span id="typing-text"></span><span class="typing-cursor"></span>
+        </h1>
+        <p class="hero-desc">为您精选全球人工智能领域的最新资讯、技术突破与行业洞察，助您紧跟AI时代脉搏。</p>
+        <div class="hero-actions">
+            <button class="btn-primary">开始阅读</button>
+            <button class="btn-secondary">了解更多</button>
+        </div>
+        <div class="stats">
+            <div class="stat-item">
+                <div class="stat-number" data-target="2500">0</div>
+                <div class="stat-label">简报文章</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="150">0</div>
+                <div class="stat-label">行业专家</div>
+            </div>
+            <div class="stat-item">
+                <div class="stat-number" data-target="50000">0</div>
+                <div class="stat-label">订阅用户</div>
+            </div>
+        </div>
+    </section>
+
+    <section id="latest">
+        <div class="section-header fade-in">
+            <h2>最新简报</h2>
+            <p>每日精选AI领域最具价值的资讯与洞见</p>
+        </div>
+        <div class="brief-grid">
+            <article class="brief-card fade-in">
+                <div class="card-meta">
+                    <span class="card-tag hot">热门</span>
+                    <span class="card-date">2024年12月</span>
+                </div>
+                <h3>GPT-5 即将发布：多模态能力迎来重大突破</h3>
+                <p>OpenAI 预计将在下个季度发布 GPT-5，新版本在多模态理解和推理能力上实现质的飞跃，可处理更复杂的跨领域任务...</p>
+                <div class="card-footer">
+                    <span class="read-time">阅读时长 5 分钟</span>
+                    <span class="read-more">阅读全文 →</span>
+                </div>
+            </article>
+
+            <article class="brief-card fade-in">
+                <div class="card-meta">
+                    <span class="card-tag new">新锐</span>
+                    <span class="card-date">2024年12月</span>
+                </div>
+                <h3>开源大模型 LLaMA 4 发布：性能媲美闭源竞品</h3>
+                <p>Meta 发布最新开源大模型 LLaMA 4，在多项基准测试中表现优异，社区生态迅速壮大，开发者迎来新选择...</p>
+                <div class="card-footer">
+                    <span class="read-time">阅读时长 4 分钟</span>
+                    <span class="read-more">阅读全文 →</span>
+                </div>
+            </article>
+
+            <article class="brief-card fade-in">
+                <div class="card-meta">
+                    <span class="card-tag">技术</span>
+                    <span class="card-date">2024年12月</span>
+                </div>
+                <h3>AI Agent 工具链新进展：自动化程度再升级</h3>
+                <p>新一代 AI Agent 框架发布，支持更复杂的任务规划与执行流程，企业级应用落地进程明显加快...</p>
+                <div class="card-footer">
+                    <span class="read-time">阅读时长 6 分钟</span>
+                    <span class="read-more">阅读全文 →</span>
+                </div>
+            </article>
+
+            <article class="brief-card fade-in">
+                <div class="card-meta">
+                    <span class="card-tag">产业</span>
+                    <span class="card-date">2024年12月</span>
+                </div>
+                <h3>全球AI监管框架加速成型：企业合规指南解读</h3>
+                <p>欧盟AI法案正式生效，各国监管政策密集出台，我们深入解读核心要点与企业应对策略...</p>
+                <div class="card-footer">
+                    <span class="read-time">阅读时长 8 分钟</span>
+                    <span class="read-more">阅读全文 →</span>
+                </div>
+            </article>
+
+            <article class="brief-card fade-in">
+                <div class="card-meta">
+                    <span class="card-tag">研究</span>
+                    <span class="card-date">2024年12月</span>
+                </div>
+                <h3>机器学习新范式：自监督学习效率提升300%</h3>
+                <p>研究团队提出创新性自监督学习方法，大幅降低标注数据依赖，在多个领域取得突破性成果...</p>
+                <div class="card-footer">
+                    <span class="read-time">阅读时长 7 分钟</span>
+                    <span class="read-more">阅读全文 →</span>
+                </div>
+            </article>
+
+            <article class="brief-card fade-in">
+                <div class="card-meta">
+                    <span class="card-tag hot">热门</span>
+                    <span class="card-date">2024年12月</span>
+                </div>
+                <h3>AI芯片格局重塑：新一代推理芯片性能评测</h3>
+                <p>多家厂商推出新一代AI推理芯片，功耗比与性价比显著提升，边缘计算迎来新机遇...</p>
+                <div class="card-footer">
+                    <span class="read-time">阅读时长 5 分钟</span>
+                    <span class="read-more">阅读全文 →</span>
+                </div>
+            </article>
+        </div>
+    </section>
+
+    <section id="topics">
+        <div class="topics-section fade-in">
+            <div class="section-header">
+                <h2>热门话题</h2>
+                <p>探索AI领域的核心主题与前沿趋势</p>
+            </div>
+            <div class="topics-grid">
+                <span class="topic-tag active">大语言模型</span>
+                <span class="topic-tag">AI Agent</span>
+                <span class="topic-tag">计算机视觉</span>
+                <span class="topic-tag">自动驾驶</span>
+                <span class="topic-tag">AI医疗</span>
+                <span class="topic-tag">生成式AI</span>
+                <span class="topic-tag">机器学习</span>
+                <span class="topic-tag">AI伦理</span>
+                <span class="topic-tag">芯片与算力</span>
+                <span class="topic-tag">开源生态</span>
+                <span class="topic-tag">企业应用</span>
+                <span class="topic-tag">投资动态</span>
+            </div>
+        </div>
+    </section>
+
+    <section id="subscribe" class="subscribe-section fade-in">
+        <h2>订阅AI简报</h2>
+        <p style="color: var(--text-secondary); max-width: 500px; margin: 0 auto;">
+            每周精选AI领域最重要的新闻与洞见，直接送达您的邮箱
+        </p>
+        <form class="subscribe-form" onsubmit="handleSubscribe(event)">
+            <input type="email" class="subscribe-input" placeholder="输入您的邮箱地址" required>
+            <button type="submit" class="btn-primary">订阅</button>
+        </form>
+        <p style="color: var(--text-secondary); font-size: 0.85rem; margin-top: 1rem;">
+            加入 50,000+ AI从业者 的选择
+        </p>
+    </section>
+
+    <footer>
+        <div class="footer-links">
+            <a href="#">关于我们</a>
+            <a href="#">联系方式</a>
+            <a href="#">隐私政策</a>
+            <a href="#">服务条款</a>
+        </div>
+        <p>© 2024 AI简报. All rights reserved.</p>
+    </footer>
+
+    <script>
+        // ===== Canvas神经网络背景 =====
+        const canvas = document.getElementById('bg-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+        let mouseX = 0, mouseY = 0;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+
+        class Particle {
+            constructor() {
+                this.reset();
+            }
+
+            reset() {
+                this.x = Math.random() * canvas.width;
+                this.y = Math.random() * canvas.height;
+                this.vx = (Math.random() - 0.5) * 0.5;
+                this.vy = (Math.random() - 0.5) * 0.5;
+                this.radius = Math.random() * 2 + 1;
+                this.alpha = Math.random() * 0.5 + 0.2;
+            }
+
+            update() {
+                this.x += this.vx;
+                this.y += this.vy;
+
+                // 边界处理
+                if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+                if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+
+                // 鼠标吸引
+                const dx = mouseX - this.x;
+                const dy = mouseY - this.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 200) {
+                    this.x += dx * 0.002;
+                    this.y += dy * 0.002;
+                }
+            }
+
+            draw() {
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(0, 212, 170, ${this.alpha})`;
+                ctx.fill();
+            }
+        }
+
+        function initParticles() {
+            particles = [];
+            const count = Math.min(80, Math.floor(canvas.width * canvas.height / 15000));
+            for (let i = 0; i < count; i++) {
+                particles.push(new Particle());
+            }
+        }
+
+        function drawConnections() {
+            for (let i = 0; i < particles.length; i++) {
+                for (let j = i + 1; j < particles.length; j++) {
+                    const dx = particles[i].x - particles[j].x;
+                    const dy = particles[i].y - particles[j].y;
+                    const dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(particles[i].x, particles[i].y);
+                        ctx.lineTo(particles[j].x, particles[j].y);
+                        const alpha = (1 - dist / 150) * 0.15;
+                        ctx.strokeStyle = `rgba(0, 212, 170, ${alpha})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+        }
+
+        function animate() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            particles.forEach(p => {
+                p.update();
+                p.draw();
+            });
+
+            drawConnections();
+            requestAnimationFrame(animate);
+        }
+
+        resizeCanvas();
+        initParticles();
+        animate();
+
+        window.addEventListener('resize', () => {
+            resizeCanvas();
+            initParticles();
+        });
+
+        // ===== 鼠标追踪 =====
+        const cursorGlow = document.getElementById('cursor-glow');
+
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            cursorGlow.style.left = e.clientX + 'px';
+            cursorGlow.style.top = e.clientY + 'px';
+        });
+
+        // ===== 打字机效果 =====
+        const typingText = document.getElementById('typing-text');
+        const texts = ['洞察人工智能前沿动态', '每日精选AI核心资讯', '紧跟科技时代脉搏'];
+        let textIndex = 0;
+        let charIndex = 0;
+        let isDeleting = false;
+
+        function typeWriter() {
+            const currentText = texts[textIndex];
+            
+            if (isDeleting) {
+                typingText.textContent = currentText.substring(0, charIndex - 1);
+                charIndex--;
+            } else {
+                typingText.textContent = currentText.substring(0, charIndex + 1);
+                charIndex++;
+            }
+
+            let delay = isDeleting ? 50 : 100;
+
+            if (!isDeleting && charIndex === currentText.length) {
+                delay = 2000;
+                isDeleting = true;
+            } else if (isDeleting && charIndex === 0) {
+                isDeleting = false;
+                textIndex = (textIndex + 1) % texts.length;
+                delay = 500;
+            }
+
+            setTimeout(typeWriter, delay);
+        }
+
+        typeWriter();
+
+        // ===== 数字滚动动画 =====
+        function animateNumbers() {
+            const numbers = document.querySelectorAll('.stat-number');
+            numbers.forEach(num => {
+                const target = parseInt(num.dataset.target);
+                const duration = 2000;
+                const start = performance.now();
+                
+                function update(currentTime) {
+                    const elapsed = currentTime - start;
+                    const progress = Math.min(elapsed / duration, 1);
+                    const eased = 1 - Math.pow(1 - progress, 3);
+                    const current = Math.floor(eased * target);
+                    
+                    num.textContent = current.toLocaleString() + '+';
+                    
+                    if (progress < 1) {
+                        requestAnimationFrame(update);
+                    }
+                }
+                requestAnimationFrame(update);
+            });
+        }
+
+        // ===== 滚动动画 =====
+        const observerOptions = {
+            threshold: 0.1,
+            rootMargin: '0px 0px -50px 0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // 触发数字动画
+                    if (entry.target.closest('.hero')) {
+                        animateNumbers();
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+
+        // ===== 导航栏滚动效果 =====
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+        });
+
+        // ===== 话题标签交互 =====
+        document.querySelectorAll('.topic-tag').forEach(tag => {
+            tag.addEventListener('click', function() {
+                document.querySelectorAll('.topic-tag').forEach(t => t.classList.remove('active'));
+                this.classList.add('active');
+            });
+        });
+
+        // ===== 订阅表单处理 =====
+        function handleSubscribe(e) {
+            e.preventDefault();
+            const input = e.target.querySelector('.subscribe-input');
+            const btn = e.target.querySelector('.btn-primary');
+            
+            btn.textContent = '订阅中...';
+            
+            setTimeout(() => {
+                btn.textContent = '订阅成功';
+                btn.style.background = 'linear-gradient(135deg, #4ecdc4, #44a08d)';
+                input.value = '';
+                
+                setTimeout(() => {
+                    btn.textContent = '订阅';
+                    btn.style.background = '';
+                }, 2000);
+            }, 1000);
+        }
+
+        // ===== 卡片3D悬浮效果 =====
+        document.querySelectorAll('.brief-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+                
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = '';
+            });
+        });
+
+        // 初始化数字动画
+        setTimeout(animateNumbers, 1000);
+    </script>
+</body>
+</html>
